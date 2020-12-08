@@ -64,10 +64,6 @@ void fixInfiniteLoop(std::vector<operation>& program, int& instrPos, int& acc) {
         }
 
         bool isJmp{ instr.op == operations::op_jmp };
-        // if(isJmp && instr.arg > 0) {
-        //     continue;
-        // }
-
         instr.op = isJmp ? operations::op_nop : operations::op_jmp;
         instrPos = acc = 0;
         if(!infiniteLoop(program, instrPos, acc)) {
@@ -79,10 +75,10 @@ void fixInfiniteLoop(std::vector<operation>& program, int& instrPos, int& acc) {
 
 int main() {
     std::ifstream input{ "8 - input.txt" };
-    input.imbue(std::locale(std::locale{ }, new field_reader{ }));
-    std::istream_iterator<std::string> start{ input };
-    std::istream_iterator<std::string> end{ };
-    std::vector<std::string> strings{ start, end };
+    std::vector<std::string> strings{ };
+    for(std::string line; std::getline(input, line);) {
+        strings.emplace_back(line);
+    }
 
     std::vector<operation> program{ };
     std::transform(strings.begin(), strings.end(), std::back_inserter(program), parseOp);
