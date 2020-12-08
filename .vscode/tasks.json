@@ -11,7 +11,7 @@
                 "/Fe:",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
                 "${file}",
-                "/std:c++17"
+                "/std:c++latest"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
