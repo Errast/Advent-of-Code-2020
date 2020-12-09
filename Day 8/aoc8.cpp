@@ -11,39 +11,66 @@ enum class operations {
     op_jmp
 };
 
-struct operation {
-    int arg{ };
-    operations op;
-    operation(operations op, int arg) : arg{ arg }, op{ op } { }
+struct base_operation {
+    const int arg{ };
+    base_operation(int arg) : arg{ arg } { }
+    virtual ~base_operation() { }
 
-    void execute(int& instrPos, int& acc) {
-        switch(op) {
-            case operations::op_nop:
-                instrPos++;
-                break;
-            case operations::op_acc:
-                acc += arg;
-                instrPos++;
-                break;
-            case operations::op_jmp:
-                instrPos += arg;
-        }
+    virtual void execute(int& instrPos, int& acc) const = 0;
+
+    virtual operations getOp() const = 0;
+};
+
+struct operation_nop : base_operation {
+    operation_nop(int arg) : base_operation(arg) { }
+
+    void execute(int& instrPos, int& acc) const override {
+        instrPos++;
+    }
+
+    operations getOp() const override {
+        return operations::op_nop;
     }
 };
 
-operation parseOp(std::string str) {
+struct operation_acc : base_operation {
+    operation_acc(int arg) : base_operation(arg) { }
+
+    void execute(int& instrPos, int& acc) const override {
+        acc += arg;
+        instrPos++;
+    }
+
+    operations getOp() const override {
+        return operations::op_acc;
+    }
+};
+
+struct operation_jmp : base_operation {
+    operation_jmp(int arg) : base_operation(arg) { }
+
+    void execute(int& instrPos, int& acc) const override {
+        instrPos += arg;
+    }
+
+    operations getOp() const override {
+        return operations::op_jmp;
+    }
+};
+
+base_operation* parseOp(std::string str) {
     size_t argSeparator{ str.find(' ') };
     std::string opName{ str.substr(0, argSeparator) };
     int arg{ std::stoi(str.substr(argSeparator + 1)) };
     if(opName == "acc")
-        return operation{ operations::op_acc, arg };
+        return new operation_acc{ arg };
     if(opName == "jmp")
-        return operation{ operations::op_jmp, arg };
+        return new operation_jmp{ arg };
     
-    return operation{ operations::op_nop, arg };
+    return new operation_nop{ arg };
 }
 
-bool infiniteLoop(std::vector<operation>& program, int& instrPos, int& acc) {
+bool infiniteLoop(std::vector<base_operation*>& program, int& instrPos, int& acc) {
     const size_t programLength{ program.size() };
     // because std::vector<bool> is a thing
     std::vector<int> visited( programLength );
@@ -51,25 +78,28 @@ bool infiniteLoop(std::vector<operation>& program, int& instrPos, int& acc) {
         if(visited[instrPos])
             return true;
         visited[instrPos] = true;
-        program[instrPos].execute(instrPos, acc);
+        program[instrPos]->execute(instrPos, acc);
     }
 
     return false;
 }
 
-void fixInfiniteLoop(std::vector<operation>& program, int& instrPos, int& acc) {
+void fixInfiniteLoop(std::vector<base_operation*>& program, int& instrPos, int& acc) {
     for(auto& instr : program) {
-        if(instr.op != operations::op_nop && instr.op != operations::op_jmp) {
+        if(instr->getOp() != operations::op_nop && instr->getOp() != operations::op_jmp) {
             continue;
         }
 
-        bool isJmp{ instr.op == operations::op_jmp };
-        instr.op = isJmp ? operations::op_nop : operations::op_jmp;
+        bool isJmp{ instr->getOp() == operations::op_jmp };
+        auto oldInstr{ instr };
+        instr = isJmp ? static_cast<base_operation*>(new operation_nop(oldInstr->arg))
+                      : static_cast<base_operation*>(new operation_jmp(oldInstr->arg));
         instrPos = acc = 0;
         if(!infiniteLoop(program, instrPos, acc)) {
             return;
         }
-        instr.op = instr.op = isJmp ? operations::op_jmp : operations::op_nop;
+        delete instr;
+        instr = oldInstr;
     }
 }
 
@@ -80,7 +110,7 @@ int main() {
         strings.emplace_back(line);
     }
 
-    std::vector<operation> program{ };
+    std::vector<base_operation*> program{ };
     std::transform(strings.begin(), strings.end(), std::back_inserter(program), parseOp);
 
     // part 1
