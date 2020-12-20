@@ -4,13 +4,14 @@
 #include <fstream>
 #include <stdexcept>
 #include <map>
+#include <algorithm>
 
 namespace mine {
     template<typename T>
     std::vector<T> getData(const char* fileName) {
         std::ifstream input{ fileName };
-        const std::istream_iterator<int> start{ input };
-        const std::istream_iterator<int> end{ };
+        const std::istream_iterator<T> start{ input };
+        const std::istream_iterator<T> end{ };
         return std::vector<T>{ start, end };
     }
 
@@ -45,5 +46,15 @@ namespace mine {
         }
         cache[value] = count;
         return count;
+    }
+
+    template<class InputIt, class OutputIt, class UnaryOperation>
+    inline std::back_insert_iterator<OutputIt> transform(const InputIt& input, OutputIt& output, UnaryOperation unary_op) {
+        return std::transform(std::begin(input), std::end(input), std::back_inserter(output), unary_op);
+    }
+
+    template<class InputIt, class UnaryFunction>
+    inline UnaryFunction for_each(const InputIt& input, UnaryFunction f) {
+        return std::for_each(std::begin(input), std::end(input), f);
     }
 }
