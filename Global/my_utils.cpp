@@ -6,6 +6,7 @@
 #include <map>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 namespace mine {
     template<typename T>
@@ -57,5 +58,14 @@ namespace mine {
     template<class InputIt, class UnaryFunction>
     inline UnaryFunction for_each(InputIt& input, UnaryFunction f) {
         return std::for_each(std::begin(input), std::end(input), f);
+    }
+
+    std::vector<std::string>& split(const std::string& string, char delimeter, std::vector<std::string>& itemsOut) {
+        std::stringstream stream{ string };
+        std::string temp;
+        while(std::getline(stream, temp, delimeter)) {
+            itemsOut.push_back(temp);
+        }
+        return itemsOut;
     }
 }
