@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <map>
 #include <algorithm>
+#include <iostream>
 
 namespace mine {
     template<typename T>
@@ -54,7 +55,7 @@ namespace mine {
     }
 
     template<class InputIt, class UnaryFunction>
-    inline UnaryFunction for_each(const InputIt& input, UnaryFunction f) {
+    inline UnaryFunction for_each(InputIt& input, UnaryFunction f) {
         return std::for_each(std::begin(input), std::end(input), f);
     }
 }
