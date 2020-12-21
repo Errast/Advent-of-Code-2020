@@ -10,18 +10,24 @@
 
 namespace mine {
     template<typename T>
-    std::vector<T> getData(const char* fileName) {
-        std::ifstream input{ fileName };
+    std::vector<T> getData(const char* filename) {
+        std::ifstream input{ filename };
         const std::istream_iterator<T> start{ input };
         const std::istream_iterator<T> end{ };
         return std::vector<T>{ start, end };
     }
 
-    constexpr int64_t factorial(int64_t num) {
-        if(num < 0) {
-            throw std::invalid_argument{ "int factorial(int num): num cannot be negative" };
+    std::vector<std::string> getLines(const char* filename) {
+        std::ifstream input{ filename };
+        std::vector<std::string> strings{ };
+        for(std::string line; std::getline(input, line);) {
+            strings.emplace_back(line);
         }
 
+        return strings;
+    }
+
+    constexpr uint64_t factorial(uint64_t num) {
         int total { 1 };
         for(int i = 2; i <= num; i++) {
             total *= num;
